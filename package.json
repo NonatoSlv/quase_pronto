@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy:clima": "node scripts/deploy.js --remote origin --base /clima/",
+    "deploy:quase": "node scripts/deploy.js --remote quase --base /quase_pronto/"
   },
   "dependencies": {
     "react": "^18.3.1",

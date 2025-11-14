@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 
 function App() {
   const [city, setCity] = useState('')
+  const [queryCity, setQueryCity] = useState('')
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
     const query = city.trim()
     if (!query) {
@@ -15,28 +16,37 @@ function App() {
       setData(null)
       return
     }
+    setQueryCity(query)
+  }
+
+  useEffect(() => {
+    if (!queryCity) return
     setLoading(true)
     setError('')
     setData(null)
-    try {
-      const res = await fetch(`https://wttr.in/${encodeURIComponent(query)}?format=j1`)
-      if (!res.ok) throw new Error('Falha ao buscar clima')
-      const json = await res.json()
 
-      const current = json.current_condition?.[0]
-      setData({
-        tempC: current?.temp_C,
-        feelsLikeC: current?.FeelsLikeC,
-        desc: current?.weatherDesc?.[0]?.value,
-        humidity: current?.humidity,
-        windKmph: current?.windspeedKmph,
+    fetch(`https://wttr.in/${encodeURIComponent(queryCity)}?format=j1`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Falha ao buscar clima')
+        return res.json()
       })
-    } catch (err) {
-      setError('Não foi possível obter o clima. Tente novamente.')
-    } finally {
-      setLoading(false)
-    }
-  }
+      .then((json) => {
+        const current = json.current_condition?.[0]
+        setData({
+          tempC: current?.temp_C,
+          feelsLikeC: current?.FeelsLikeC,
+          desc: current?.weatherDesc?.[0]?.value,
+          humidity: current?.humidity,
+          windKmph: current?.windspeedKmph,
+        })
+      })
+      .catch(() => {
+        setError('Não foi possível obter o clima. Tente novamente.')
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }, [queryCity])
 
   return (
     <div className="container">
@@ -56,7 +66,7 @@ function App() {
 
       {data && (
         <div className="card">
-          <h2>{city.trim()}</h2>
+          <h2>{queryCity}</h2>
           <p><strong>Condição:</strong> {data.desc}</p>
           <p><strong>Temperatura:</strong> {data.tempC} °C</p>
           <p><strong>Sensação:</strong> {data.feelsLikeC} °C</p>
